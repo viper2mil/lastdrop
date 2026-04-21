@@ -1,6 +1,6 @@
 {
-  "name": "BlazorPWA",
-  "short_name": "BlazorPWA",
+  "name": "LastDrop",
+  "short_name": "LastDrop",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
