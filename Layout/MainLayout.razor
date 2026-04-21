@@ -1,0 +1,29 @@
+﻿@inherits LayoutComponentBase
+
+<style>
+    :root {
+        --primary: #31A1E5; /* El azul de tu botón */
+        --bg-start: #F7FBFC;
+        --bg-end: #E4F1F4; /* El degradado de fondo */
+        --text-dark: #1A1A1A;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+        min-height: 100vh;
+        color: var(--text-dark);
+    }
+
+    .main-viewport {
+        max-width: 480px; /* Tamaño móvil simulado */
+        margin: 0 auto;
+        padding-bottom: 70px; /* Espacio para el menú inferior */
+    }
+</style>
+
+<div class="main-viewport">
+    @Body
+</div>

@@ -1,0 +1,259 @@
+﻿@page "/"
+@using BlazorPWA.Models
+@using BlazorPWA.Services
+@inject WaterService Water
+@implements IDisposable
+
+<style>
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
+    .app-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
+    .logo-box { background: #EAF7FD; padding: 8px; border-radius: 12px; display: flex; align-items: center; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #FEDCC5; display: flex; align-items: center; justify-content: center; }
+    
+    .welcome-section { padding: 0 20px; margin-bottom: 20px; }
+    .subtitle { color: #888; margin: 0; }
+    .main-headline { font-size: 24px; font-weight: 700; margin: 5px 0; }
+
+    .device-list { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
+    .device-card { background: white; border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; }
+    .device-icon-box { background: #F2F9FF; padding: 12px; border-radius: 12px; }
+    .device-info { flex-grow: 1; }
+    .device-name { font-weight: 600; margin: 0; }
+    .device-status { font-size: 12px; margin: 3px 0; font-weight: bold; }
+
+    /* Material Toggle Switch */
+    .switch { width: 46px; height: 24px; background: #31A1E5; border-radius: 20px; position: relative; transition: 0.3s; }
+    .switch-off { background: #DCDCDC; }
+    .switch-knob { width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; right: 3px; transition: 0.3s; }
+    .switch-off .switch-knob { right: 25px; }
+
+    .scan-button-container { padding: 30px 20px; text-align: center; }
+    .scan-button { background: #31A1E5; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
+    .scan-button:disabled { background: #A0A0A0; }
+    .loading-text { font-size: 12px; margin-top: 10px; color: #888; }
+
+    .spinning { animation: rotation 2s infinite linear; }
+    @@keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }
+</style>
+
+<div class="header">
+    <div class="app-title">
+        <div class="logo-box"><span class="material-symbols-outlined" style="color: #31A1E5;">water_drop</span></div>
+        LastDrop
+    </div>
+    <a href="/profile"><div class="user-avatar"><span class="material-symbols-outlined" style="color: #555;">account_circle</span></div></a>
+</div>
+
+<div class="welcome-section">
+    <p class="subtitle">Hello, Amaia</p>
+    <h1 class="main-headline">Your Water Network</h1>
+</div>
+
+<div class="device-list">
+    @foreach (var device in Water.Devices.Where(d => d.IsVisible))
+    {
+        <div class="device-card" style="@(device.IsEnabled ? "" : "opacity: 0.6;")">
+            <div class="device-icon-box">
+    <span class="material-symbols-outlined" style="color: #31A1E5;">
+        @device.Icon
+    </span>
+</div>
+            <div class="device-info">
+                <p class="device-name">@device.Name</p>
+                <p class="device-status">
+                    @if (!device.IsEnabled) { <span style="color: #A0A0A0;">● IDLE</span> }
+                    else if (device.Flow > 0) { <span style="color: #31A1E5;">● RUNNING (@device.Flow L/m)</span> }
+                    else { <span style="color: #2ECC71;">● CONNECTED</span> }
+                </p>
+            </div>
+            
+            <button @onclick="() => RequestDelete(device)" style="border: none; background: transparent; color: #E74C3C; cursor: pointer;">
+                <span class="material-symbols-outlined">delete</span>
+</button>
+
+            <div @onclick="() => ToggleDevice(device)" class="switch @(device.IsEnabled ? "" : "switch-off")" style="cursor: pointer;">
+                <div class="switch-knob"></div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="scan-button-container">
+    <button class="scan-button" @onclick="HandleScan" disabled="@isScanning">
+        @if (isScanning) {
+            <span class="material-symbols-outlined spinning">sync</span>
+            <span>Scanning...</span>
+        } else {
+            <span class="material-symbols-outlined">search</span>
+            <span>Scan for New Devices</span>
+        }
+    </button>
+    <p class="loading-text">@(isScanning ? "Syncing with Cloud Gateway..." : "Looking for AquaFlow IoT sensors nearby")</p>
+
+    @* --- CONFIRMATION MODAL --- *@
+@if (showConfirmModal)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: #E74C3C;">warning</span>
+            <h3>Remove Device?</h3>
+            <p>Are you sure you want to remove <strong>@deviceToDelete?.Name</strong> from your network?</p>
+            
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CancelDelete">Cancel</button>
+                <button class="btn-danger" @onclick="ConfirmDelete">Yes, Remove</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        width: 85%;
+        max-width: 350px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-content h3 { margin: 15px 0 10px; font-weight: 700; }
+    .modal-content p { color: #666; font-size: 14px; margin-bottom: 25px; }
+
+    .modal-actions { display: flex; gap: 10px; }
+
+    .btn-secondary {
+        flex: 1; padding: 12px; border: none; border-radius: 10px;
+        background: #F0F0F0; color: #555; font-weight: 600; cursor: pointer;
+    }
+
+    .btn-danger {
+        flex: 1; padding: 12px; border: none; border-radius: 10px;
+        background: #E74C3C; color: white; font-weight: 600; cursor: pointer;
+    }
+</style>
+</div>
+
+@code {
+    private bool isScanning = false;
+    private System.Threading.Timer? timer;
+
+    protected override void OnInitialized() {
+        timer = new System.Threading.Timer(_ => {
+            if (!isScanning) {
+                Water.SimulateRealisticUsage();
+                InvokeAsync(StateHasChanged);
+            }
+        }, null, 0, 3000);
+    }
+
+    private void ToggleDevice(Device device) {
+        device.IsEnabled = !device.IsEnabled;
+        if (!device.IsEnabled) device.Flow = 0;
+    }
+
+    private async Task HandleScan() {
+        isScanning = true;
+        await Water.ScanDevicesAsync();
+        isScanning = false;
+        StateHasChanged();
+    }
+
+    private bool showConfirmModal = false;
+private Device? deviceToDelete;
+
+private void RequestDelete(Device device)
+{
+    deviceToDelete = device;
+    showConfirmModal = true;
+}
+
+private void ConfirmDelete()
+{
+    if (deviceToDelete != null)
+    {
+        deviceToDelete.IsVisible = false;
+        showConfirmModal = false;
+        deviceToDelete = null;
+    }
+}
+
+private void CancelDelete()
+{
+    showConfirmModal = false;
+    deviceToDelete = null;
+}
+
+    public void Dispose() => timer?.Dispose();
+}
+
+<style>
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        border-top: 1px solid #EEE;
+        max-width: 480px; /* Mantener centrado en escritorio */
+        margin: 0 auto;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #A0A0A0;
+        font-size: 10px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .nav-item.active {
+        color: #31A1E5;
+    }
+
+    .nav-icon {
+        font-size: 20px;
+    }
+</style>
+
+<div class="bottom-nav">
+    <a href="/" class="nav-item">
+        <span class="material-symbols-outlined">home</span>
+        <span class="nav-text">Home</span>
+    </a>
+    
+    @* --- ICONO PARA STATS / USAGE --- *@
+    <a href="/statistics" class="nav-item">
+        <span class="material-symbols-outlined">leaderboard</span>
+        <span class="nav-text">Usage</span>
+    </a>
+    
+    @* --- ICONO PARA ALERTS --- *@
+    <a href="/alerts" class="nav-item">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="nav-text">Alerts</span>
+    </a>
+    
+    @* --- ICONO PARA PROFILE / SETTINGS --- *@
+    <a href="/profile" class="nav-item">
+        <span class="material-symbols-outlined">person</span>
+        <span class="nav-text">Profile</span>
+    </a>
+</div>
