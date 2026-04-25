@@ -23,8 +23,8 @@ jobs:
       - name: Publish
         run: dotnet publish BlazorPWA.csproj -c Release -o release --nologo
 
-      # - name: Fix base-tag for GitHub Pages
-      #   run: sed -i 's/<base href="\/" \/>/<base href="\/lastdrop\/" \/>/g' release/wwwroot/index.html
+      - name: Fix base-tag for GitHub Pages
+        run: sed -i 's/<base href="\/" \/>/<base href="\/lastdrop\/" \/>/g' release/wwwroot/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
