@@ -1,0 +1,125 @@
+@page "/alerts"
+@using BlazorPWA.Models
+
+<div class="page-container" style="background: #F8F9FA; min-height: 100vh; padding: 20px; padding-bottom: 100px; position: relative;">
+    
+    @* --- HEADER --- *@
+    <div style="display: flex; align-items: center; margin-bottom: 30px;">
+        <NavLink href="/" style="color: #2D3436; text-decoration: none; display: flex; align-items: center;">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </NavLink>
+        <h2 style="flex: 1; text-align: center; font-weight: 700; margin: 0; font-size: 1.2rem; color: #2D3436;">Notifications</h2>
+    </div>
+
+    @* --- ALERTS LIST --- *@
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        @foreach (var alert in GetAlerts())
+        {
+            <div style="background: white; border-radius: 24px; padding: 20px; display: flex; gap: 15px; align-items: flex-start; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                
+                @* Icon Box *@
+                <div style="background: @(alert.Color + "15"); color: @alert.Color; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">@alert.Icon</span>
+                </div>
+
+                @* Content *@
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="color: @alert.Color; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">@alert.Category</span>
+                        <span style="font-size: 11px; color: #A0A0A0; font-weight: 600;">@alert.TimeAgo</span>
+                    </div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #2D3436;">@alert.Title</h4>
+                    <p style="margin: 0; font-size: 13px; color: #636E72; line-height: 1.4;">@alert.Description</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* --- NAVIGATION FOOTER --- *@
+    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #EEE; max-width: 500px; margin: 0 auto; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
+        <NavLink href="/" Match="NavLinkMatch.All" class="nav-link-item">
+            <span class="material-symbols-outlined">home</span>
+            <small>Home</small>
+        </NavLink>
+        <NavLink href="/statistics" class="nav-link-item">
+            <span class="material-symbols-outlined">leaderboard</span>
+            <small>Usage</small>
+        </NavLink>
+        <NavLink href="/alerts" class="nav-link-item active">
+            <span class="material-symbols-outlined">notifications</span>
+            <small>Alerts</small>
+        </NavLink>
+        <NavLink href="/profile" class="nav-link-item">
+            <span class="material-symbols-outlined">person</span>
+            <small>Profile</small>
+        </NavLink>
+    </div>
+</div>
+
+<style>
+    .nav-link-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #A0A0A0;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 600;
+        gap: 4px;
+    }
+
+    .nav-link-item.active {
+        color: #31A1E5;
+    }
+
+    .nav-link-item span {
+        font-size: 20px;
+    }
+</style>
+
+@code {
+    public class AlertItem {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string TimeAgo { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+    }
+
+    private List<AlertItem> GetAlerts() => new()
+    {
+        new AlertItem { 
+            Category = "Goal Reached", 
+            Title = "Great kitchen savings!", 
+            Description = "You consumed 15% less water than yesterday in the main sink. Keep it up!", 
+            TimeAgo = "2h ago", 
+            Icon = "eco", 
+            Color = "#2ECC71" 
+        },
+        new AlertItem { 
+            Category = "Usage Warning", 
+            Title = "Garden irrigation excess", 
+            Description = "The automatic irrigation has been active 10 minutes longer than scheduled.", 
+            TimeAgo = "5h ago", 
+            Icon = "warning", 
+            Color = "#FF9800" 
+        },
+        new AlertItem { 
+            Category = "System Update", 
+            Title = "New sensor detected", 
+            Description = "The 'Guest Shower' sensor has been successfully synced to your network.", 
+            TimeAgo = "Yesterday", 
+            Icon = "info", 
+            Color = "#2196F3" 
+        },
+        new AlertItem { 
+            Category = "Potential Leak", 
+            Title = "Drip detected", 
+            Description = "We detected a constant minimum flow in the master bathroom during the early hours.", 
+            TimeAgo = "Yesterday", 
+            Icon = "water_damage", 
+            Color = "#E74C3C" 
+        }
+    };
+}

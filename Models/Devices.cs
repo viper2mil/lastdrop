@@ -1,11 +1,11 @@
 namespace BlazorPWA.Models;
 
 public class Device {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Name { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; } = "Unknown";
     public double Flow { get; set; }
     public bool IsEnabled { get; set; } = true; // El estado del Toggle
-    public string Icon { get; set; }
+    public string Icon { get; set; } = "none";
     public double Temp { get; set; }
     public int Purity { get; set; }
     public bool IsAlert { get; set; }

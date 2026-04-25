@@ -1,0 +1,192 @@
+@page "/statistics"
+@using BlazorPWA.Models
+@using BlazorPWA.Services
+@inject WaterService Water
+
+<style>
+    .stats-container { background: #F8F9FA; min-height: 100vh; padding-bottom: 80px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    /* Header */
+    .stats-header { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: white; }
+    .back-button { color: #31A1E5; text-decoration: none; display: flex; align-items: center; }
+    .header-title-box { text-align: center; flex-grow: 1; }
+    .header-title { font-size: 16px; font-weight: 700; color: #2D3436; margin: 0; }
+    .date-badge { display: flex; align-items: center; gap: 8px; color: #888; font-size: 13px; font-weight: 600; }
+
+    /* Main Consumption Card */
+    .main-card { 
+        background: linear-gradient(145deg, #EAF7FD 0%, #FFFFFF 100%); 
+        margin: 20px; border-radius: 24px; padding: 25px; 
+        border: 1px solid rgba(49, 161, 229, 0.1); box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+        position: relative;
+    }
+    .card-label { color: #31A1E5; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .total-value { font-size: 48px; font-weight: 800; color: #2D3436; margin: 10px 0; display: flex; align-items: baseline; gap: 5px; }
+    .total-value small { font-size: 20px; color: #2D3436; }
+    .saving-insight { display: flex; align-items: center; gap: 10px; color: #2ECC71; font-size: 13px; font-weight: 600; }
+    .water-drop-icon { position: absolute; top: 25px; right: 25px; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+    /* Device Usage List */
+    .usage-section { padding: 0 20px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #2D3436; }
+    
+    .usage-item { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .usage-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .usage-meta { display: flex; align-items: center; gap: 12px; }
+    .usage-icon { color: #31A1E5; font-size: 20px; }
+    .usage-name { font-weight: 700; font-size: 15px; margin: 0; }
+    .usage-location { color: #A0A0A0; font-size: 12px; margin: 2px 0 0 0; }
+    .usage-stats { text-align: right; }
+    .usage-vol { font-weight: 800; color: #31A1E5; font-size: 15px; margin: 0; }
+    .usage-perc { color: #CCC; font-size: 11px; font-weight: 600; }
+
+    /* Progress Bar */
+    .progress-bg { background: #F0F0F0; height: 8px; border-radius: 10px; width: 100%; overflow: hidden; }
+    .progress-fill { background: #31A1E5; height: 100%; border-radius: 10px; transition: width 0.8s ease-out; }
+
+    /* Curiosities Card */
+    .fun-fact-card { 
+        background: white; border: 1px solid #F0F0F0; border-radius: 20px; 
+        padding: 20px; margin: 25px 20px; display: flex; gap: 15px; 
+    }
+    .fun-fact-content h4 { margin: 0 0 8px 0; color: #2D3436; font-size: 14px; font-weight: 700; }
+    .fun-fact-content p { margin: 0; color: #666; font-size: 13px; line-height: 1.5; }
+
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #EEE; max-width: 480px; margin: 0 auto; z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A0A0A0; font-size: 10px; text-decoration: none; font-weight: 600; }
+    .nav-item.active { color: #31A1E5; }
+</style>
+
+<div class="stats-container">
+    @* Header *@
+    <div class="stats-header">
+        <a href="/" class="back-button">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div class="header-title-box">
+            <h2 class="header-title">Usage Details - Monday</h2>
+        </div>
+        <div class="date-badge">
+            <span class="material-symbols-outlined" style="font-size: 18px;">calendar_month</span>
+            Oct 14, 2023
+        </div>
+    </div>
+
+    @* Main Total Card *@
+    <div class="main-card">
+        <div class="water-drop-icon">
+            <span class="material-symbols-outlined" style="color: #31A1E5;">water_drop</span>
+        </div>
+        <span class="card-label">Total Daily Consumption</span>
+        <div class="total-value">450<small>L</small></div>
+        <div class="saving-insight">
+            <span class="material-symbols-outlined" style="font-size: 18px;">trending_down</span>
+            12% less than last Monday's average
+        </div>
+    </div>
+
+    @* List by Device *@
+    <div class="usage-section">
+        <div class="section-header">
+            <h3 class="section-title">Usage by Device</h3>
+            <span class="material-symbols-outlined" style="color: #A0A0A0; font-size: 20px;">info</span>
+        </div>
+
+        @* Shower Example *@
+        <div class="usage-item">
+            <div class="usage-info">
+                <div class="usage-meta">
+                    <div style="background: #F2F9FF; padding: 8px; border-radius: 12px; display: flex; align-items: center;">
+                        <span class="material-symbols-outlined usage-icon">shower</span>
+                    </div>
+                    <div>
+                        <h4 class="usage-name">Shower</h4>
+                        <p class="usage-location">Master Bathroom</p>
+                    </div>
+                </div>
+                <div class="usage-stats">
+                    <p class="usage-vol">180L</p>
+                    <span class="usage-perc">(40%)</span>
+                </div>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width: 40%;"></div>
+            </div>
+        </div>
+
+        @* Garden Hose Example *@
+        <div class="usage-item">
+            <div class="usage-info">
+                <div class="usage-meta">
+                    <div style="background: #F2F9FF; padding: 8px; border-radius: 12px; display: flex; align-items: center;">
+                        <span class="material-symbols-outlined usage-icon">potted_plant</span>
+                    </div>
+                    <div>
+                        <h4 class="usage-name">Garden Hose</h4>
+                        <p class="usage-location">Backyard</p>
+                    </div>
+                </div>
+                <div class="usage-stats">
+                    <p class="usage-vol">150L</p>
+                    <span class="usage-perc">(33%)</span>
+                </div>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width: 33%;"></div>
+            </div>
+        </div>
+
+        @* Kitchen Sink Example *@
+        <div class="usage-item">
+            <div class="usage-info">
+                <div class="usage-meta">
+                    <div style="background: #F2F9FF; padding: 8px; border-radius: 12px; display: flex; align-items: center;">
+                        <span class="material-symbols-outlined usage-icon">faucet</span>
+                    </div>
+                    <div>
+                        <h4 class="usage-name">Kitchen Sink</h4>
+                        <p class="usage-location">Ground Floor</p>
+                    </div>
+                </div>
+                <div class="usage-stats">
+                    <p class="usage-vol">120L</p>
+                    <span class="usage-perc">(27%)</span>
+                </div>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width: 27%;"></div>
+            </div>
+        </div>
+    </div>
+
+    @* Fun Fact Card *@
+    <div class="fun-fact-card">
+        <span class="material-symbols-outlined" style="color: #FFB300; font-size: 28px;">lightbulb</span>
+        <div class="fun-fact-content">
+            <h4>Fun Fact</h4>
+            <p>Today's consumption is equivalent to filling 3 medium-sized bathtubs. Reducing your shower by 2 minutes tomorrow could save an extra 25L.</p>
+        </div>
+    </div>
+
+    @* Bottom Nav *@
+    <div class="bottom-nav">
+        <a href="/" class="nav-item">
+            <span class="material-symbols-outlined">home</span>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="/statistics" class="nav-item active">
+            <span class="material-symbols-outlined">leaderboard</span>
+            <span class="nav-text">Usage</span>
+        </a>
+        <a href="/alerts" class="nav-item">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="nav-text">Alerts</span>
+        </a>
+        <a href="/profile" class="nav-item">
+            <span class="material-symbols-outlined">person</span>
+            <span class="nav-text">Profile</span>
+        </a>
+    </div>
+</div>
