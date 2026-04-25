@@ -13,8 +13,7 @@ jobs:
   deploy-to-github-pages:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -23,6 +22,12 @@ jobs:
 
       - name: Publish
         run: dotnet publish BlazorPWA.csproj -c Release -o release --nologo
+
+      - name: Change base-tag to match GitHub subfolder
+        run: sed -i 's/<base href="\/" \/>/<base href="\/lastdrop\/" \/>/g' release/wwwroot/index.html
+
+      - name: Copy index to 404
+        run: cp release/wwwroot/index.html release/wwwroot/404.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
