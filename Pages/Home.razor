@@ -7,7 +7,37 @@
 <style>
     .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
     .app-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
-    .logo-box { background: #EAF7FD; padding: 8px; border-radius: 12px; display: flex; align-items: center; }
+    .app-title {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espacio exacto entre el logo y el texto */
+}
+
+.app-logo {
+    height: 24px;   /* Tamaño del icono */
+    width: auto;
+    display: block;
+}
+
+.text-logo {
+    height: 18px;   /* El texto suele quedar mejor un poco más bajo que el icono */
+    width: auto;
+    display: block;
+}
+
+.logo-box {
+    background: #EAF7FD; /* Si quieres mantener el circulito/cuadrado azul de fondo */
+    padding: 6px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.text-logo-box {
+    display: flex;
+    align-items: center;
+}
+
     .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #FEDCC5; display: flex; align-items: center; justify-content: center; }
     
     .welcome-section { padding: 0 20px; margin-bottom: 20px; }
@@ -38,8 +68,10 @@
 
 <div class="header">
     <div class="app-title">
-        <div class="logo-box"><span class="material-symbols-outlined" style="color: #31A1E5;">water_drop</span></div>
-        LastDrop
+        <div class="logo-box"><img src="images/logo.png" alt="LastDrop" class="app-logo" /></div>
+        <div class="text-logo-box">
+            <img src="images/lastdrop.png" alt="Last Drop" class="text-logo" />
+        </div>
     </div>
     <a href="/profile"><div class="user-avatar"><span class="material-symbols-outlined" style="color: #555;">account_circle</span></div></a>
 </div>
